@@ -1,39 +1,48 @@
 import java.util.*;
 
-class InvalidRoomTypeException extends Exception {
-    InvalidRoomTypeException(String msg) {
-        super(msg);
-    }
-}
-
 public class Main {
 
-    static void validateRoom(String roomType) throws InvalidRoomTypeException {
-        if(!roomType.equals("Single") && !roomType.equals("Double") && !roomType.equals("Suite")) {
-            throw new InvalidRoomTypeException("Booking failed: Invalid room type selected.");
+    Map<String,Integer> inventory = new HashMap<>();
+    Map<String,String> reservations = new HashMap<>();
+    Stack<String> rollbackStack = new Stack<>();
+
+    void cancelBooking(String reservationId) {
+
+        if(!reservations.containsKey(reservationId)) {
+            System.out.println("Invalid reservation.");
+            return;
         }
-        System.out.println("Booking successful.");
+
+        String roomType = reservations.get(reservationId);
+
+        rollbackStack.push(reservationId);
+
+        inventory.put(roomType, inventory.get(roomType) + 1);
+
+        reservations.remove(reservationId);
+
+        System.out.println("Booking cancelled successfully. Inventory restored for room type: " + roomType);
+        System.out.println();
+        System.out.println("Rollback History (Most Recent First):");
+
+        while(!rollbackStack.isEmpty()) {
+            System.out.println("Released Reservation ID: " + rollbackStack.pop());
+        }
+
+        System.out.println();
+        System.out.println("Updated " + roomType + " Room Availability: " + inventory.get(roomType));
     }
 
     public static void main(String[] args) {
 
-        Scanner sc = new Scanner(System.in);
+        Main m = new Main();
 
-        System.out.println("Booking Validation");
+        m.inventory.put("Single",5);
 
-        System.out.print("Enter guest name: ");
-        String name = sc.nextLine();
+        m.reservations.put("Single-1","Single");
 
-        System.out.print("Enter room type (Single/Double/Suite): ");
-        String roomType = sc.nextLine();
+        System.out.println("Booking Cancellation");
 
-        try {
-            validateRoom(roomType);
-        }
-        catch (InvalidRoomTypeException e) {
-            System.out.println(e.getMessage());
-        }
-
-        sc.close();
+        m.cancelBooking("Single-1");
     }
 }
