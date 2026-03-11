@@ -1,81 +1,53 @@
+import java.io.*;
 import java.util.*;
-
-class BookingService {
-
-    Map<String, Integer> inventory = new HashMap<>();
-    Map<String, Integer> counter = new HashMap<>();
-
-    BookingService() {
-        inventory.put("Single", 5);
-        inventory.put("Double", 3);
-        inventory.put("Suite", 2);
-
-        counter.put("Single", 0);
-        counter.put("Double", 0);
-        counter.put("Suite", 0);
-    }
-
-    public synchronized void book(String guest, String type) {
-        if (inventory.get(type) > 0) {
-
-            int id = counter.get(type) + 1;
-            counter.put(type, id);
-
-            inventory.put(type, inventory.get(type) - 1);
-
-            System.out.println("Booking confirmed for Guest: " + guest + ", Room ID: " + type + "-" + id);
-        }
-    }
-
-    public void showInventory() {
-        System.out.println();
-        System.out.println("Remaining Inventory:");
-        System.out.println("Single: " + inventory.get("Single"));
-        System.out.println("Double: " + inventory.get("Double"));
-        System.out.println("Suite: " + inventory.get("Suite"));
-    }
-}
-
-class BookingThread extends Thread {
-
-    BookingService service;
-    String guest;
-    String type;
-
-    BookingThread(BookingService service, String guest, String type) {
-        this.service = service;
-        this.guest = guest;
-        this.type = type;
-    }
-
-    public void run() {
-        service.book(guest, type);
-    }
-}
 
 public class Main {
 
-    public static void main(String[] args) throws Exception {
+    static String FILE = "inventory.dat";
 
-        System.out.println("Concurrent Booking Simulation");
+    static Map<String,Integer> loadInventory() {
+        Map<String,Integer> inventory = null;
 
-        BookingService service = new BookingService();
+        try {
+            ObjectInputStream in = new ObjectInputStream(new FileInputStream(FILE));
+            inventory = (Map<String,Integer>) in.readObject();
+            in.close();
+        }
+        catch(Exception e) {
+            System.out.println("No valid inventory data found. Starting fresh.");
+            inventory = new HashMap<>();
+            inventory.put("Single",5);
+            inventory.put("Double",3);
+            inventory.put("Suite",2);
+        }
 
-        Thread t1 = new BookingThread(service, "Abhi", "Single");
-        Thread t2 = new BookingThread(service, "Vanamathi", "Double");
-        Thread t3 = new BookingThread(service, "Kural", "Suite");
-        Thread t4 = new BookingThread(service, "Subha", "Single");
+        return inventory;
+    }
 
-        t1.start();
-        t2.start();
-        t3.start();
-        t4.start();
+    static void saveInventory(Map<String,Integer> inventory) {
+        try {
+            ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(FILE));
+            out.writeObject(inventory);
+            out.close();
+            System.out.println("Inventory saved successfully.");
+        }
+        catch(Exception e) {
+            System.out.println("Error saving inventory.");
+        }
+    }
 
-        t1.join();
-        t2.join();
-        t3.join();
-        t4.join();
+    public static void main(String[] args) {
 
-        service.showInventory();
+        System.out.println("System Recovery");
+
+        Map<String,Integer> inventory = loadInventory();
+
+        System.out.println();
+        System.out.println("Current Inventory:");
+        System.out.println("Single: " + inventory.get("Single"));
+        System.out.println("Double: " + inventory.get("Double"));
+        System.out.println("Suite: " + inventory.get("Suite"));
+
+        saveInventory(inventory);
     }
 }
