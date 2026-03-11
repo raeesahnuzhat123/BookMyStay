@@ -1,53 +1,39 @@
 import java.util.*;
 
-class Reservation {
-    String id;
-    String guest;
-    String roomType;
-
-    Reservation(String id, String guest, String roomType) {
-        this.id = id;
-        this.guest = guest;
-        this.roomType = roomType;
+class InvalidRoomTypeException extends Exception {
+    InvalidRoomTypeException(String msg) {
+        super(msg);
     }
 }
 
 public class Main {
 
-    List<Reservation> history = new ArrayList<>();
-
-    void addReservation(String id, String guest, String roomType) {
-        history.add(new Reservation(id, guest, roomType));
-    }
-
-    void showHistory() {
-        for (Reservation r : history) {
-            System.out.println(r.id + " " + r.guest + " " + r.roomType);
+    static void validateRoom(String roomType) throws InvalidRoomTypeException {
+        if(!roomType.equals("Single") && !roomType.equals("Double") && !roomType.equals("Suite")) {
+            throw new InvalidRoomTypeException("Booking failed: Invalid room type selected.");
         }
-    }
-
-    void generateReport() {
-        Map<String, Integer> report = new HashMap<>();
-
-        for (Reservation r : history) {
-            report.put(r.roomType, report.getOrDefault(r.roomType, 0) + 1);
-        }
-
-        for (String type : report.keySet()) {
-            System.out.println(type + " " + report.get(type));
-        }
+        System.out.println("Booking successful.");
     }
 
     public static void main(String[] args) {
 
-        Main m = new Main();
+        Scanner sc = new Scanner(System.in);
 
-        m.addReservation("R101", "Aman", "Standard");
-        m.addReservation("R102", "Rahul", "Deluxe");
-        m.addReservation("R103", "Neha", "Standard");
-        m.addReservation("R104", "Priya", "Suite");
+        System.out.println("Booking Validation");
 
-        m.showHistory();
-        m.generateReport();
+        System.out.print("Enter guest name: ");
+        String name = sc.nextLine();
+
+        System.out.print("Enter room type (Single/Double/Suite): ");
+        String roomType = sc.nextLine();
+
+        try {
+            validateRoom(roomType);
+        }
+        catch (InvalidRoomTypeException e) {
+            System.out.println(e.getMessage());
+        }
+
+        sc.close();
     }
 }
